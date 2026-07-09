@@ -1,0 +1,40 @@
+.workspace-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  margin-bottom: var(--space-5);
+  transition: box-shadow var(--duration-base) var(--ease-standard);
+}
+
+.workspace-card:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.workspace-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.workspace-card__header h3 {
+  font-family: var(--font-serif);
+}
+
+.workspace-card__actions {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.workspace-card__body {
+  padding: var(--space-4);
+}
+
+.workspace-card__footer {
+  padding: var(--space-4);
+  border-top: 1px solid var(--color-border);
+  color: var(--color-text-secondary);
+  font-size: var(--fs-sm);
+}
