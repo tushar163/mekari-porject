@@ -19,6 +19,12 @@ const INITIAL_STATE: SettingsFormState = {
   timezone: 'UTC',
 };
 
+const TIMEZONE_OPTIONS = [
+  { value: 'UTC', label: 'UTC' },
+  { value: 'Asia/Kolkata', label: 'Asia/Kolkata (IST)' },
+  { value: 'America/New_York', label: 'America/New York (ET)' },
+  { value: 'Europe/London', label: 'Europe/London (GMT)' },
+];
 
 function sanitizeValue(value: string): string {
   return value.replace(/</g, '').trimStart();
@@ -42,41 +48,40 @@ function validateField(name: keyof SettingsFormState, value: string): string {
   }
 }
 
-const TIMEZONE_OPTIONS = [
-  { value: 'UTC', label: 'UTC' },
-  { value: 'Asia/Kolkata', label: 'Asia/Kolkata (IST)' },
-  { value: 'America/New_York', label: 'America/New York (ET)' },
-  { value: 'Europe/London', label: 'Europe/London (GMT)' },
-];
+function validateAll(form: SettingsFormState): FieldErrors {
+  const errors: FieldErrors = {};
+  (Object.keys(form) as (keyof SettingsFormState)[]).forEach((key) => {
+    errors[key] = validateField(key, form[key]);
+  });
+  return errors;
+}
 
 export default function SettingsPage() {
   const [form, setForm] = useState<SettingsFormState>(INITIAL_STATE);
   const [errors, setErrors] = useState<FieldErrors>({});
+  const [hasAttemptedSubmit, setHasAttemptedSubmit] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
   function handleChange(name: keyof SettingsFormState, rawValue: string) {
     const value = sanitizeValue(rawValue);
     setForm((prev) => ({ ...prev, [name]: value }));
-    setErrors((prev) => ({ ...prev, [name]: validateField(name, value) }));
+    if (hasAttemptedSubmit) {
+      setErrors((prev) => ({ ...prev, [name]: validateField(name, value) }));
+    }
   }
-
-  const isFormValid = (Object.keys(form) as (keyof SettingsFormState)[]).every(
-    (key) => validateField(key, form[key]) === ''
-  );
 
   function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    const nextErrors: FieldErrors = {};
-    (Object.keys(form) as (keyof SettingsFormState)[]).forEach((key) => {
-      nextErrors[key] = validateField(key, form[key]);
-    });
+    setHasAttemptedSubmit(true);
+
+    const nextErrors = validateAll(form);
     setErrors(nextErrors);
     if (Object.values(nextErrors).some(Boolean)) return;
 
     setIsSubmitting(true);
     setSubmitted(false);
-   
+
     window.setTimeout(() => {
       setIsSubmitting(false);
       setSubmitted(true);
@@ -110,7 +115,7 @@ export default function SettingsPage() {
         />
 
         <div className="settings-form__footer">
-          <Button type="submit" disabled={!isFormValid} isLoading={isSubmitting}>
+          <Button type="submit" isLoading={isSubmitting}>
             Save changes
           </Button>
           {submitted && <span className="settings-form__success">Saved successfully</span>}
