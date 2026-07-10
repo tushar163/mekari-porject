@@ -6,13 +6,16 @@ import './Dashboard.css';
 
 
 export default function DashboardPage() {
+  // Access the workspace records and selected record ID from the Redux store
   const dispatch = useAppDispatch();
   const records = useAppSelector((state) => state.workspace.records);
+  // Access the selected workspace record ID from the Redux store
   const selectedId = useAppSelector((state) => state.workspace.selectedId);
 
   return (
     <div className="dashboard-grid">
       {records.map((record) => (
+        // Render a WorkspaceCard for each record
         <WorkspaceCard
           key={record.id}
           title={record.name}
@@ -25,7 +28,7 @@ export default function DashboardPage() {
             </Button>
           }
         >
-         
+         {/* Add the status and select button */}
           <p className={`dashboard-card__status dashboard-card__status--${record.status}`}>
             {record.status}
           </p>
