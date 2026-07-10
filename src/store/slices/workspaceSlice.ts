@@ -6,6 +6,7 @@ export interface WorkspaceRecord {
   status: 'active' | 'archived';
 }
 
+// Define the initial state for the workspace slice, including a list of records and the selected record ID
 interface WorkspaceState {
   records: WorkspaceRecord[];
   selectedId: string | null;

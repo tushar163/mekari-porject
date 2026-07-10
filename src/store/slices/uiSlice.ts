@@ -9,6 +9,7 @@ const initialState: UiState = {
   notice: null,
 };
 
+// Create a slice for UI state management of the Sidebar component, including active tab and notice message
 const uiSlice = createSlice({
   name: 'ui',
   initialState,
