@@ -28,10 +28,12 @@ const workspaceSlice = createSlice({
     selectRecord(state, action: PayloadAction<string>) {
       state.selectedId = action.payload;
     },
+    // Reducer to rename a workspace record by its IDs
     renameRecord(state, action: PayloadAction<{ id: string; name: string }>) {
       const record = state.records.find((r) => r.id === action.payload.id);
       if (record) record.name = action.payload.name;
     },
+    // Reducer to toggle the archived status of a workspace record by its ID
     toggleArchived(state, action: PayloadAction<string>) {
       const record = state.records.find((r) => r.id === action.payload);
       if (record) record.status = record.status === 'active' ? 'archived' : 'active';
