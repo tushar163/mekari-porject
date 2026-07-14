@@ -1,5 +1,6 @@
 import axios from "axios";
 import type { AxiosError, InternalAxiosRequestConfig } from "axios";
+import { notify } from "./toast";
 
 const TOKEN_KEY = "auth_token";
 
@@ -7,6 +8,7 @@ export interface NormalizedError {
   message: string;
   status: number | null;
   original: AxiosError;
+  fieldErrors?: Record<string, string>;
 }
 
 const httpClient = axios.create({
@@ -67,9 +69,14 @@ const normalizeError = (error: AxiosError): NormalizedError => {
     };
   }
 
-  const serverMessage =
-    (error.response.data as any)?.message ||
-    (error.response.data as any)?.error;
+  const data = error.response.data as any;
+  const serverMessage = data?.message || data?.error;
+
+  // FE-13.1: extract field-level errors for 422
+  let fieldErrors: Record<string, string> | undefined;
+  if (status === 422 && data?.errors) {
+    fieldErrors = data.errors;
+  }
 
   switch (status) {
     case 400:
@@ -77,6 +84,7 @@ const normalizeError = (error: AxiosError): NormalizedError => {
         message: serverMessage || "Bad request.",
         status,
         original: error,
+        fieldErrors,
       };
 
     case 401:
@@ -105,6 +113,7 @@ const normalizeError = (error: AxiosError): NormalizedError => {
         message: serverMessage || "Conflict detected.",
         status,
         original: error,
+        fieldErrors,
       };
 
     case 422:
@@ -112,6 +121,7 @@ const normalizeError = (error: AxiosError): NormalizedError => {
         message: serverMessage || "Validation failed.",
         status,
         original: error,
+        fieldErrors,
       };
 
     case 429:
@@ -134,6 +144,7 @@ const normalizeError = (error: AxiosError): NormalizedError => {
         message: serverMessage || error.message || "Something went wrong.",
         status,
         original: error,
+        fieldErrors,
       };
   }
 };
@@ -174,6 +185,25 @@ httpClient.interceptors.response.use(
 
         window.location.replace("/login");
       }
+      return Promise.reject(normalized);
+    }
+
+    // FE-13.1: 403 → permission denied, redirect to /forbidden (keep token)
+    if (error.response?.status === 403) {
+      if (
+        !isRedirecting &&
+        window.location.pathname !== "/forbidden"
+      ) {
+        isRedirecting = true;
+        window.location.replace("/forbidden");
+      }
+      notify.error(normalized.message);
+      return Promise.reject(normalized);
+    }
+
+    // FE-13.3: auto-toast network / timeout / 5xx
+    if (!error.response || error.code === "ECONNABORTED" || (error.response.status && error.response.status >= 500)) {
+      notify.error(normalized.message);
     }
 
     return Promise.reject(normalized);
@@ -182,3 +212,22 @@ httpClient.interceptors.response.use(
 
 export { httpClient };
 export type { AxiosError };
+
+/*
+ * FE-13.1: Consuming fieldErrors in a form catch block
+ *
+ *   try {
+ *     await httpClient.post("/api/settings", formData);
+ *   } catch (err) {
+ *     const normalized = err as NormalizedError;
+ *
+ *     if (normalized.fieldErrors) {
+ *       // Map server field errors onto local error state
+ *       for (const [field, msg] of Object.entries(normalized.fieldErrors)) {
+ *         setFieldError(field, msg);
+ *       }
+ *     } else {
+ *       setGlobalError(normalized.message);
+ *     }
+ *   }
+ */

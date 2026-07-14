@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { httpClient } from '../lib/axios';
 import type { NormalizedError } from '../lib/axios';
+import { notify } from '../lib/toast';
 import './NetworkSandbox.css';
 
 // one row in the results table
@@ -14,10 +15,6 @@ interface TestResult {
   timestamp: string;
 }
 
-// the scenarios we want to test against our mock routes
-// NOTE: httpClient already has baseURL "/api" set in lib/axios.ts,
-// so these paths must NOT include "/api" again or the request 404s
-// and MSW falls back to a real (failing) fetch.
 const TEST_CASES = [
   { label: 'Get Workspaces (normal)', method: 'get' as const, url: '/workspaces' },
   { label: 'Slow Request (2s delay)', method: 'get' as const, url: '/test/slow' },
@@ -59,9 +56,8 @@ const NetworkSandbox = () => {
         success: true,
         message: 'OK',
       });
+      notify.success(`${testCase.label} — ${response.status} in ${Math.round(performance.now() - startedAt)}ms`);
     } catch (err) {
-      // our response interceptor already normalizes errors for us,
-      // so we just read message/status straight off it
       const normalized = err as NormalizedError;
 
       addResult({
@@ -71,6 +67,10 @@ const NetworkSandbox = () => {
         success: false,
         message: normalized.message || 'Request failed',
       });
+
+      if (normalized.status === 404) {
+        notify.error(normalized.message);
+      }
     } finally {
       setRunningLabel(null);
     }

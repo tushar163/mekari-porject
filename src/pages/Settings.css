@@ -11,8 +11,11 @@
   margin-top: var(--space-2);
 }
 
-.settings-form__success {
-  color: var(--color-success);
+.settings-form__global-error {
+  color: var(--color-danger);
   font-size: var(--fs-sm);
-  animation: field-error-in var(--duration-base) var(--ease-standard);
+  margin: 0 0 var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-danger-soft);
+  border-radius: var(--radius-sm);
 }
