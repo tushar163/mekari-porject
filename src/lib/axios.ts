@@ -1,7 +1,5 @@
-import axios, {
-  AxiosError,
-  InternalAxiosRequestConfig,
-} from "axios";
+import axios from "axios";
+import type { AxiosError, InternalAxiosRequestConfig } from "axios";
 
 const TOKEN_KEY = "auth_token";
 

@@ -6,13 +6,21 @@ import { store } from './store/store';
 import App from './App';
 import './styles/tokens.css';
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    {/* FE-09.4: store model injected at the application root */}
-    <Provider store={store}>
-      <BrowserRouter>
-        <App />
-      </BrowserRouter>
-    </Provider>
-  </StrictMode>
-);
+async function start() {
+  if (import.meta.env.DEV) {
+    const { worker } = await import('./mocks/browser');
+    await worker.start({ onUnhandledRequest: 'bypass' });
+  }
+
+  createRoot(document.getElementById('root')!).render(
+    <StrictMode>
+      <Provider store={store}>
+        <BrowserRouter>
+          <App />
+        </BrowserRouter>
+      </Provider>
+    </StrictMode>
+  );
+}
+
+start();

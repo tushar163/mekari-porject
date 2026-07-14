@@ -11,6 +11,7 @@ export interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
   { label: 'Dashboard', path: '/', icon: '◧' },
+  { label: 'Network Sandbox', path: '/sandbox', icon: '◈' },
   { label: 'Settings', path: '/settings', icon: '⚙' },
   { label: 'Logs', path: '/logs', icon: '☰' },
 ];
